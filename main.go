@@ -1,11 +1,15 @@
-package main;
+package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/ductruonghoc/DATN_08_2025_Back-end/config"
 	"github.com/ductruonghoc/DATN_08_2025_Back-end/routes"
+	"github.com/gin-gonic/gin"
 );
 
 func main(){
+	//Config env
+	config.LoadEnv();
+
 	r := gin.Default();
 
 	// Register all routes

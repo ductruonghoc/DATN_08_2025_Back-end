@@ -6,5 +6,5 @@ import (
 
 func RegisterRoutes(r *gin.Engine) {
 	// Add route groups here
-	TemplateRoutes(r);
+	UserRoutes(r);
 };

@@ -1,5 +1,5 @@
 // command: go test ./test/unit --v
-package test
+package _test
 
 import (
 	"net/http"
