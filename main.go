@@ -16,5 +16,6 @@ func main(){
 	routes.RegisterRoutes(r);
 
 	// Start server
-	r.Run(":8080");
+	port := config.GetEnv("PORT", "8080");
+	r.Run(":" + port);
 };
