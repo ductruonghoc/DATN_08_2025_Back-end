@@ -1,5 +1,5 @@
 module github.com/ductruonghoc/DATN_08_2025_Back-end
-
+// +heroku goVersion go1.23
 go 1.23.1
 
 require (
