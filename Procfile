@@ -1,1 +1,1 @@
-web: go build -o mdc-backend && ./mdc-backend
+web: mdc-backend
