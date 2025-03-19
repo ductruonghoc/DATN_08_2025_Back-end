@@ -124,18 +124,18 @@ func CanResetPassword(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Reset Password can process. OTP has been sent"})
 }
 
-func ResetPassword() gin.HandlerFunc{
+func ResetPassword() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//Get middlewares results
-		_, exists := c.Get("verified_email");
+		_, exists := c.Get("verified_email")
 		if !exists {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not retrieve verified email"});
-			return;
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not retrieve verified email"})
+			return
 		}
 
 		//db query here
 
 		//Successful
-		c.JSON(http.StatusOK, gin.H{"message": "Password resets successfully."});
+		c.JSON(http.StatusOK, gin.H{"message": "Password resets successfully."})
 	}
 }

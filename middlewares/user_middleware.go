@@ -111,34 +111,34 @@ func VeirifyOTP() gin.HandlerFunc {
 		}
 		//try bind the request
 		if err := c.ShouldBindBodyWithJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"});
-			c.Abort();
-			return;
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+			c.Abort()
+			return
 		}
 		//db query here
 
 		//Successful
-		c.Set("verified_email", req.Email);
-		c.Next();
+		c.Set("verified_email", req.Email)
+		c.Next()
 	}
 }
 
 func CheckGoogleUserExisted() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
-			GoogleID string `json:"google_id"`;
+			GoogleID string `json:"google_id"`
 		}
 		//try binding the request
 		if err := c.ShouldBindBodyWithJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"});
-			c.Abort();
-			return;
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+			c.Abort()
+			return
 		}
 
-		account_existed := false;
+		account_existed := false
 		//db query here
-		c.Set("account_existed", account_existed);
-		c.Next();
+		c.Set("account_existed", account_existed)
+		c.Next()
 	}
 }
 
@@ -171,32 +171,32 @@ func UserAuthenticate() gin.HandlerFunc {
 		}
 
 		//password hashing
-		hashed_password := internal.BcryptHashing(req.Password);
-		req.Password = hashed_password;
+		hashed_password := internal.BcryptHashing(req.Password)
+		req.Password = hashed_password
 
-		var userID int;
+		var userID int
 		//db query here
-		c.Set("user_id", userID);
-		c.Next();
+		c.Set("user_id", userID)
+		c.Next()
 	}
 }
 
 func UserExistedFirst() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//Get middlewares results
-		account_existed, exists := c.Get("account_existed");
+		account_existed, exists := c.Get("account_existed")
 		if !exists {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not retrieve account existed status"});
-			return;
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not retrieve account existed status"})
+			return
 		}
 
 		//account existed before will be ignored
 		if account_existed == false {
-			c.JSON(http.StatusConflict, gin.H{"error": "Account has not existed yet."});
-			c.Abort();
-			return;
+			c.JSON(http.StatusConflict, gin.H{"error": "Account has not existed yet."})
+			c.Abort()
+			return
 		}
 
-		c.Next();
+		c.Next()
 	}
 }
