@@ -31,6 +31,7 @@ func CheckVerifiedEmailExisted() gin.HandlerFunc {
 
 		account_existed := false
 		//db query here
+		
 
 		c.Set("account_existed", account_existed)
 		c.Next()

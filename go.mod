@@ -1,4 +1,5 @@
 module github.com/ductruonghoc/DATN_08_2025_Back-end
+
 // +heroku goVersion go1.23
 go 1.23.1
 
@@ -11,6 +12,7 @@ require (
 require (
 	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/joho/godotenv v1.5.1
+	github.com/lib/pq v1.10.9
 	golang.org/x/crypto v0.23.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 )
