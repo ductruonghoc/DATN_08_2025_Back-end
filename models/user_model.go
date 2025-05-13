@@ -10,7 +10,7 @@ type User struct {
 
 type OTP struct {
 	OTPCode string `json:"otp_code"`
-	OTPExpiresAt time.Time `json:"expires_at"`
+	OTPWasGeneratedAt time.Time `json:"generated_at"`
 };
 
 type GoogleUser struct {

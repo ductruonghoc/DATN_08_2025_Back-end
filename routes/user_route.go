@@ -15,8 +15,8 @@ func UserRoutes(r *gin.Engine, db *sql.DB) {
 			"/nonverified_registration",
 			middlewares.CheckVerifiedEmailExisted(db),
 			middlewares.UserExistedIgnore(),
-			middlewares.StoreTemporatoryUser(db),
 			middlewares.SendOTP(),
+			middlewares.StoreTemporatoryUser(db),
 			controllers.NonVerifiedRegistration,
 		);
 		userGroup.POST(

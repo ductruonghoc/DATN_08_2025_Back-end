@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 
-	//"time"
+	"time"
 
 	"github.com/ductruonghoc/DATN_08_2025_Back-end/internal"
 	"github.com/ductruonghoc/DATN_08_2025_Back-end/models"
@@ -42,6 +42,7 @@ func CheckVerifiedEmailExisted(db *sql.DB) gin.HandlerFunc {
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Can't query"})
 			c.Abort()
+			return
 		}
 		defer rows.Close() // Important to close rows to free resources
 
@@ -57,6 +58,23 @@ func CheckVerifiedEmailExisted(db *sql.DB) gin.HandlerFunc {
 
 func StoreTemporatoryUser(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		//Get middlewares results
+		otpVal, exists := c.Get("otp")
+		if !exists {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not retrieve otp existed status"})
+			c.Abort()
+			return
+		}
+
+		otp, ok := otpVal.(models.OTP) // type assertion
+		if !ok {
+			// handle type mismatch
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error with otp"})
+			c.Abort()
+			return
+		}
+
+
 		var req struct {
 			Email    string `json:"email"`
 			Password string `json:"password"`
@@ -71,20 +89,24 @@ func StoreTemporatoryUser(db *sql.DB) gin.HandlerFunc {
 
 		//password hashing
 		hashed_password := internal.BcryptHashing(req.Password)
+		hashed_otp := internal.BcryptHashing(otp.OTPCode)
 		req.Password = hashed_password
 
 		email := req.Email
 		//db query here
 		query := `
-			INSERT INTO temp_user (email, password)
-			VALUES ($1, $2)
+			INSERT INTO temp_user (email, password, otp, otp_generated_time)
+			VALUES ($1, $2, $3, $4)
 			ON CONFLICT (email) DO UPDATE
-			SET password = EXCLUDED.password;
+			SET password = EXCLUDED.password,
+				otp = EXCLUDED.otp,
+				otp_generated_time = EXCLUDED.otp_generated_time;
 		`
-		rows, err := db.Query(query, email, hashed_password) // Using a placeholder for the argument
+		rows, err := db.Query(query, email, hashed_password, hashed_otp, otp.OTPWasGeneratedAt) // Using a placeholder for the argument
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Can't query"})
 			c.Abort()
+			return
 		}
 		defer rows.Close() // Important to close rows to free resources
 		// Successfully stored unverified user, continue processing
@@ -117,9 +139,7 @@ func SendOTP() gin.HandlerFunc {
 		//expiration := time.Now().Add(5 * time.Minute);
 
 		otp.OTPCode = otpCode
-		//otp.OTPExpiresAt = expiration;
-
-		//db query here
+		otp.OTPWasGeneratedAt = time.Now()
 
 		//email otp
 		if err := internal.EmailOTP(req.Email, otp.OTPCode); err != nil {
@@ -127,7 +147,7 @@ func SendOTP() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-
+		c.Set("otp", otp)
 		//succesful
 		c.Next()
 	}

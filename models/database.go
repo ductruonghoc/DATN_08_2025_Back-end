@@ -35,7 +35,7 @@ func InitDB(dataSourceName string) (*sql.DB, error) {
 	if err != nil {
 		// If ping fails, close the database connection to release resources.
 		db.Close()
-		return nil, fmt.Errorf("Couldn't hold DB connection pool: %w", err)
+		return nil, fmt.Errorf("couldn't hold db connection pool: %w", err)
 	}
 
 	log.Println("Successfully connected to PostgreSQL database!")
