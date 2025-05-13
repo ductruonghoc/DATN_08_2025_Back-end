@@ -55,7 +55,7 @@ func CheckVerifiedEmailExisted(db *sql.DB) gin.HandlerFunc {
 	}
 }
 
-func StoreTemporatoryUser() gin.HandlerFunc {
+func StoreTemporatoryUser(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
 			Email    string `json:"email"`
@@ -73,8 +73,20 @@ func StoreTemporatoryUser() gin.HandlerFunc {
 		hashed_password := internal.BcryptHashing(req.Password)
 		req.Password = hashed_password
 
+		email := req.Email
 		//db query here
-
+		query := `
+			INSERT INTO temp_user (email, password)
+			VALUES ($1, $2)
+			ON CONFLICT (email) DO UPDATE
+			SET password = EXCLUDED.password;
+		`
+		rows, err := db.Query(query, email, hashed_password) // Using a placeholder for the argument
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Can't query"})
+			c.Abort()
+		}
+		defer rows.Close() // Important to close rows to free resources
 		// Successfully stored unverified user, continue processing
 		c.Next()
 	}
