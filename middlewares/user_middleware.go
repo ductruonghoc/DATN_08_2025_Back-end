@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"database/sql"
 	"net/http"
 
 	//"time"
@@ -11,7 +12,7 @@ import (
 	//"github.com/gin-gonic/gin/binding"
 )
 
-func CheckVerifiedEmailExisted() gin.HandlerFunc {
+func CheckVerifiedEmailExisted(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
 			Email string `json:"email"`
@@ -28,10 +29,26 @@ func CheckVerifiedEmailExisted() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-
+		email := req.Email
 		account_existed := false
 		//db query here
-		
+		query := `
+			select 1 as account_existed
+			from "user" 
+			where email = $1
+			limit 1
+		`
+		rows, err := db.Query(query, email) // Using a placeholder for the argument
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Can't query"})
+			c.Abort()
+		}
+		defer rows.Close() // Important to close rows to free resources
+
+		if rows.Next() {
+			// A row exists, which means the account exists
+			account_existed = true
+		}
 
 		c.Set("account_existed", account_existed)
 		c.Next()

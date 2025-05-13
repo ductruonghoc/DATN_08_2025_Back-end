@@ -2,17 +2,18 @@
 package routes
 
 import (
+	"database/sql"
 	"github.com/ductruonghoc/DATN_08_2025_Back-end/controllers"
 	"github.com/ductruonghoc/DATN_08_2025_Back-end/middlewares"
 	"github.com/gin-gonic/gin"
 )
 
-func UserRoutes(r *gin.Engine) {
+func UserRoutes(r *gin.Engine, db *sql.DB) {
 	userGroup := r.Group("/user")
 	{
 		userGroup.POST(
 			"/nonverified_registration",
-			middlewares.CheckVerifiedEmailExisted(),
+			middlewares.CheckVerifiedEmailExisted(db),
 			middlewares.UserExistedIgnore(),
 			middlewares.StoreTemporatoryUser(),
 			middlewares.SendOTP(),
@@ -45,7 +46,7 @@ func UserRoutes(r *gin.Engine) {
 		);
 		userGroup.POST(
 			"/can_reset_password",
-			middlewares.CheckVerifiedEmailExisted(),
+			middlewares.CheckVerifiedEmailExisted(db),
 			middlewares.UserExistedFirst(),
 			middlewares.SendOTP(),
 			controllers.CanResetPassword,

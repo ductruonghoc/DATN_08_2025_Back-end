@@ -1,10 +1,12 @@
 package routes
 
 import (
+	"database/sql"
+
 	"github.com/gin-gonic/gin"
 );
 
-func RegisterRoutes(r *gin.Engine) {
+func RegisterRoutes(r *gin.Engine, db *sql.DB) {
 	// Add route groups here
-	UserRoutes(r);
+	UserRoutes(r, db);
 };
