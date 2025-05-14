@@ -8,6 +8,8 @@ import (
 
 	"github.com/ductruonghoc/DATN_08_2025_Back-end/internal"
 	"github.com/ductruonghoc/DATN_08_2025_Back-end/models"
+
+	"golang.org/x/crypto/bcrypt"
 	"github.com/gin-gonic/gin"
 	//"github.com/gin-gonic/gin/binding"
 )
@@ -73,7 +75,6 @@ func StoreTemporatoryUser(db *sql.DB) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-
 
 		var req struct {
 			Email    string `json:"email"`
@@ -153,7 +154,7 @@ func SendOTP() gin.HandlerFunc {
 	}
 }
 
-func VeirifyOTP() gin.HandlerFunc {
+func VeirifyOTP_Register(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
 			Email   string `json:"email"`
@@ -166,6 +167,72 @@ func VeirifyOTP() gin.HandlerFunc {
 			return
 		}
 		//db query here
+		email := req.Email
+		query := `
+			select 
+				otp as otp_code,
+				otp_generated_time as generated_at
+			from temp_user
+			where email = $1;
+		`
+		rows, err := db.Query(query, email) // Using a placeholder for the argument
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Can't query"})
+			c.Abort()
+			return
+		}
+		defer rows.Close() // Important to close rows to free resources
+
+		var otp models.OTP
+		if rows.Next() { // Advances to the first (and expected only) row.
+			// Could return false here if there's an immediate error fetching the first row.
+			if err := rows.Scan(&otp.OTPCode, &otp.OTPWasGeneratedAt); err != nil {
+				// This error is specific to scanning THIS row's data.
+				// e.g., otp_code was NULL and OTPCode is a non-pointer string, or types are incompatible.
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process data"})
+				c.Abort()
+				return
+			}
+			// If Scan was successful, otp is populated.
+		} else {
+			// rows.Next() returned false. This could be because:
+			// 1. No rows were found (sql.ErrNoRows if using QueryRow().Scan(), but with raw Next() it's just 'false').
+			// 2. An error occurred trying to fetch the first row.
+			// This 'else' block in your code assumes it's "No rows found".
+			c.JSON(http.StatusNotFound, gin.H{"error": "OTP not found"})
+			c.Abort()
+			return
+		}
+
+		// Check for errors after the potential Next() call
+		// This is where you catch the error if rows.Next() returned 'false' due to an error,
+		// rather than just no rows.
+		if err = rows.Err(); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error processing results"})
+			c.Abort()
+			return
+		}
+
+		// Get the current time
+		currentTime := time.Now()
+
+		// Add 2 hours to the input time
+		expirationTime := otp.OTPWasGeneratedAt.Add(2 * time.Hour)
+		otp_is_expired := expirationTime.Before(currentTime)
+
+		if otp_is_expired {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "OTP expired"})
+			c.Abort()
+			return
+		}
+
+		// Compare the hashed password with the plain text one
+		err = bcrypt.CompareHashAndPassword([]byte(otp.OTPCode), []byte(req.OTPCode))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "OTP is not match"})
+			c.Abort()
+			return
+		}
 
 		//Successful
 		c.Set("verified_email", req.Email)

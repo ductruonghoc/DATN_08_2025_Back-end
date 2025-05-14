@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"database/sql"
 
 	"github.com/ductruonghoc/DATN_08_2025_Back-end/internal"
 	"github.com/ductruonghoc/DATN_08_2025_Back-end/models"
@@ -13,7 +14,7 @@ func NonVerifiedRegistration(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Nonverified registration process completed successfully"})
 }
 
-func VerifiedRegistration() gin.HandlerFunc {
+func VerifiedRegistration(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//Get middlewares results
 		email, exists := c.Get("verified_email")
@@ -23,6 +24,16 @@ func VerifiedRegistration() gin.HandlerFunc {
 		}
 
 		//db query here
+		query := `
+			SELECT proc_create_account_and_user($1);
+		`
+		rows, err := db.Query(query, email) // Using a placeholder for the argument
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Can't query"})
+			c.Abort()
+			return
+		}
+		defer rows.Close() // Important to close rows to free resources
 
 		//Successful
 		c.JSON(http.StatusOK, gin.H{"message": "User verified successfully", "email": email})

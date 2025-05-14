@@ -21,8 +21,8 @@ func UserRoutes(r *gin.Engine, db *sql.DB) {
 		);
 		userGroup.POST(
 			"/verified_registration",
-			middlewares.VeirifyOTP(),
-			controllers.VerifiedRegistration(),
+			middlewares.VeirifyOTP_Register(db),
+			controllers.VerifiedRegistration(db),
 		);
 		userGroup.POST(
 			"/can_google_register",
@@ -53,7 +53,7 @@ func UserRoutes(r *gin.Engine, db *sql.DB) {
 		);
 		userGroup.POST(
 			"/reset_password",
-			middlewares.VeirifyOTP(),
+			middlewares.VeirifyOTP_Register(db),
 			controllers.ResetPassword(),
 		);
 	}
