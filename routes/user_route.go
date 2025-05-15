@@ -12,7 +12,7 @@ func UserRoutes(r *gin.Engine, db *sql.DB) {
 	userGroup := r.Group("/user")
 	{
 		userGroup.POST(
-			"/nonverified_registration",
+			"/unverified_register",
 			middlewares.CheckVerifiedEmailExisted(db),
 			middlewares.UserExistedIgnore(),
 			middlewares.SendOTP(),
@@ -20,7 +20,7 @@ func UserRoutes(r *gin.Engine, db *sql.DB) {
 			controllers.NonVerifiedRegistration,
 		);
 		userGroup.POST(
-			"/verified_registration",
+			"/verify_registration",
 			middlewares.VeirifyOTP_Register(db),
 			controllers.VerifiedRegistration(db),
 		);
