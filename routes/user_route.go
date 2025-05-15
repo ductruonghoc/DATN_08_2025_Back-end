@@ -36,7 +36,7 @@ func UserRoutes(r *gin.Engine, db *sql.DB) {
 		)
 		userGroup.POST(
 			"/login",
-			middlewares.UserAuthenticate(),
+			middlewares.UserAuthenticate(db),
 			controllers.UserLogin,
 		);
 		userGroup.POST(
