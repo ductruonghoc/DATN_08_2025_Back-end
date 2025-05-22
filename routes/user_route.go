@@ -49,7 +49,7 @@ func UserRoutes(r *gin.Engine, db *sql.DB) {
 			middlewares.CheckVerifiedEmailExisted(db),
 			middlewares.UserExistedFirst(),
 			middlewares.SendOTP(),
-			controllers.CanResetPassword,
+			controllers.SendOTP(db, 0),
 		);
 		userGroup.POST(
 			"/reset_password",
@@ -59,7 +59,7 @@ func UserRoutes(r *gin.Engine, db *sql.DB) {
 		userGroup.POST(
 			"/resend_otp_registration",
 			middlewares.SendOTP(),
-			controllers.ResendOTP(db, 1),
+			controllers.SendOTP(db, 1),
 		);
 	}
 }

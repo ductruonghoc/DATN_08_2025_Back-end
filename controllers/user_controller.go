@@ -132,11 +132,6 @@ func GoogleLogin(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
-func CanResetPassword(c *gin.Context) {
-	//all middleware succesfully processes
-	c.JSON(http.StatusOK, gin.H{"message": "Reset Password can process. OTP has been sent"})
-}
-
 func ResetPassword() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//Get middlewares results
@@ -153,9 +148,9 @@ func ResetPassword() gin.HandlerFunc {
 	}
 }
 
-func ResendOTP(db *sql.DB, destination_table_index int) gin.HandlerFunc {
+func SendOTP(db *sql.DB, destination_table_index int) gin.HandlerFunc {
 	destination_table_slice := []string{
-		"user" ,
+		`"user"`,
 		"temp_user",
 	}
 	return func(c *gin.Context) {
@@ -235,7 +230,7 @@ func ResendOTP(db *sql.DB, destination_table_index int) gin.HandlerFunc {
 		//Successful
 		c.JSON(http.StatusOK, gin.H{
 			"success": true,
-			"message": "OTP has been resent.",
+			"message": "OTP has been sent.",
 		})
 	}
 }
