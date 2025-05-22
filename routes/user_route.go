@@ -56,5 +56,10 @@ func UserRoutes(r *gin.Engine, db *sql.DB) {
 			middlewares.VeirifyOTP_Register(db),
 			controllers.ResetPassword(),
 		);
+		userGroup.POST(
+			"/resend_otp_registration",
+			middlewares.SendOTP(),
+			controllers.ResendOTP(db, 1),
+		);
 	}
 }

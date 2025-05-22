@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
+
 	"database/sql"
 
 	"github.com/ductruonghoc/DATN_08_2025_Back-end/internal"
@@ -148,5 +150,92 @@ func ResetPassword() gin.HandlerFunc {
 
 		//Successful
 		c.JSON(http.StatusOK, gin.H{"message": "Password resets successfully."})
+	}
+}
+
+func ResendOTP(db *sql.DB, destination_table_index int) gin.HandlerFunc {
+	destination_table_slice := []string{
+		"user" ,
+		"temp_user",
+	}
+	return func(c *gin.Context) {
+		//Get middlewares results
+		otpVal, exists := c.Get("otp")
+		if !exists {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"success": false,
+				"message": "Fail to read otp.",
+				"errors": gin.H{
+					"code": 500,
+					"details": "Generate otp failed.",
+				},
+			})
+			c.Abort()
+			return
+		}
+
+		otp, ok := otpVal.(models.OTP) // type assertion
+		if !ok {
+			// handle type mismatch
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"success": false,
+				"message": "Fail to read otp",
+				"errors": gin.H{
+					"code": 500,
+					"details": "Generate otp failed.",
+				},
+			})
+			c.Abort()
+			return
+		}
+
+		var req struct {
+			Email    string `json:"email"`
+		}
+
+		// Bind JSON, form, or query parameter
+		if err := c.ShouldBindBodyWithJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"message": "Fail to bind the request.",
+				"errors": gin.H{
+					"code": 400,
+					"details": "Invalid request structure.",
+				},
+			})
+			c.Abort()
+			return
+		}
+		//initial params
+		email := req.Email
+		hashed_otp := internal.BcryptHashing(otp.OTPCode)
+		destination_table := destination_table_slice[destination_table_index]
+		//db query here
+		query := fmt.Sprintf(`
+			UPDATE %s 
+			SET otp = $1 
+			WHERE email = $2;
+		`, destination_table)
+
+		
+		rows, err := db.Query(query, hashed_otp, email) // Using a placeholder for the argument
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"message": "Fail to query.",
+				"errors": gin.H{
+					"code": 400,
+					"details": "Can't query with the request' params.",
+				},
+			})
+			c.Abort()
+			return
+		}
+		defer rows.Close() // Important to close rows to free resources
+		//Successful
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "OTP has been resent.",
+		})
 	}
 }
